@@ -55,7 +55,7 @@ def recommend():
     return jsonify({"recommended_recipes": recommendations})
 
 # Serve frontend
-@app.route('/')
+@app.route('/', methods=["GET"])
 def serve_frontend():
     return send_from_directory('src', 'index.html')
 
