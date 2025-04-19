@@ -543,24 +543,20 @@
         }
         
         async function searchRecipes() {
-            const response = await fetch('/recommend', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ ingredients: ingredients })
-            });
             if (ingredients.length === 0) {
                 showAlert('Please add at least one ingredient');
                 return;
             }
-            
-            // Show loading indicator
+        
             loadingIndicator.style.display = 'block';
             resultsContainer.innerHTML = '';
             
+            // Auto-detect environment (Local vs Render)
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:5001' : window.location.origin;
+            
             try {
-                const response = await fetch('http://127.0.0.1:5001/recommend', {
+                const response = await fetch(`${backendUrl}/recommend`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -569,14 +565,36 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Server responded with status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                displayResults(data.recommended_recipes || data.recommended_recipes); // Handle either spelling
+                
+                // Handle both spellings (recommended_recipes vs recommended_recipes)
+                const recipes = data.recommended_recipes || data.recommended_recipes || [];
+                
+                if (recipes.length === 0) {
+                    throw new Error('No recipes found - try different ingredients');
+                }
+                
+                displayResults(recipes);
+                
             } catch (error) {
-                console.error('Error:', error);
-                showError(error.message);
+                console.error('Fetch error:', error);
+                
+                // User-friendly error messages
+                const errorMessage = error.message.includes('Failed to fetch') 
+                    ? "Connection failed. " + (isLocalhost 
+                        ? "Make sure the Python server is running on port 5001."
+                        : "Server may be starting up. Try again in 30 seconds.")
+                    : error.message;
+                
+                showError(errorMessage);
+                
+                // Auto-retry for Render cold starts (production only)
+                if (!isLocalhost && error.message.includes('Failed to fetch')) {
+                    setTimeout(searchRecipes, 30000); // Retry after 30 seconds
+                }
             } finally {
                 loadingIndicator.style.display = 'none';
             }
