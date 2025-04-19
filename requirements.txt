@@ -3,3 +3,4 @@ flask_cors==5.0.1
 gdown==5.2.0
 pandas==2.2.3
 scikit_learn==1.6.1
+gunicorn
