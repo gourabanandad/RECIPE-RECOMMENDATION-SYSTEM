@@ -543,6 +543,13 @@
         }
         
         async function searchRecipes() {
+            const response = await fetch('/recommend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ingredients: ingredients })
+            });
             if (ingredients.length === 0) {
                 showAlert('Please add at least one ingredient');
                 return;

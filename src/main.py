@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import os
 
 # Initialize Flask app with CORS
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder='../src')
 CORS(app)  # Enable CORS for all routes
 
 # Download dataset if not exists
@@ -44,24 +44,22 @@ def recommend_recipes(user_ingredients, top_n=5):
     return df.iloc[top_indices][['title', 'ingredients', 'directions', 'link']].to_dict(orient='records')
 
 # API endpoint
-@app.route("/recommend", methods=["POST"])
+@app.route('/recommend', methods=['POST'])
 def recommend():
     data = request.get_json()
     if not data or "ingredients" not in data:
         return jsonify({"error": "Invalid input"}), 400
-
-    user_ingredients = data["ingredients"]
-    recommendations = recommend_recipes(user_ingredients)
+    recommendations = recommend_recipes(data["ingredients"])
     return jsonify({"recommended_recipes": recommendations})
 
 # Serve frontend
-@app.route('/', methods=["GET"])
+@app.route('/')
 def serve_frontend():
-    return send_from_directory('src', 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory('static', path)
+    return send_from_directory(app.static_folder, path)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5001)))
