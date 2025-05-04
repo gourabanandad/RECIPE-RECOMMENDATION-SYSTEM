@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
+import random
 
 # Initialize Flask app with CORS
 app = Flask(__name__, static_folder='../src')
@@ -36,12 +37,13 @@ df['NER'] = df['NER'].apply(preprocess_ingredients)
 vectorizer = CountVectorizer()
 ingredient_matrix = vectorizer.fit_transform(df['NER'])
 
-def recommend_recipes(user_ingredients, top_n=5):
+def recommend_recipes(user_ingredients, top_n=5, pool_size=10000):
     user_input = ' '.join(user_ingredients)
     user_vector = vectorizer.transform([user_input])
     similarities = cosine_similarity(user_vector, ingredient_matrix)
-    top_indices = similarities.argsort()[0][-top_n:][::-1]
-    return df.iloc[top_indices][['title', 'ingredients', 'directions', 'link']].to_dict(orient='records')
+    top_indices = similarities.argsort()[0][-pool_size:][::-1]
+    selected_indices = random.sample(list(top_indices), k=min(top_n, len(top_indices)))
+    return df.iloc[selected_indices][['title', 'ingredients', 'directions', 'link']].to_dict(orient='records')
 
 # API endpoint
 @app.route('/recommend', methods=['POST'])
@@ -62,4 +64,4 @@ def serve_static(path):
     return send_from_directory(app.static_folder, path)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5001)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5001)), debug=True)
