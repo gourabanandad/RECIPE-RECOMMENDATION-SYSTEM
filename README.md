@@ -21,7 +21,10 @@
    ```
 
 3. **Open in Browser**:
-   [http://localhost:5001](http://localhost:5001)
+
+   [http://localhost:5001(Local Host)](http://localhost:5001)
+
+   [See the live website](https://recipe-recommendation-system-7obk.onrender.com/)
 
 ---
 
