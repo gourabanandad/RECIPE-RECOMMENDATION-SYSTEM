@@ -26,6 +26,8 @@
 
    [See the live website](https://recipe-recommendation-system-7obk.onrender.com/)
 
+   [See demo video](https://youtu.be/POVtlg_hWwg)
+
 ---
 
 ## 🔥 Key Features
